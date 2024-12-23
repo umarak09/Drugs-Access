@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search For Drugs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js/dist/tesseract.min.js"></script>
+    <style>
+        .card img {
+            height: 200px;
+            object-fit: cover;
+        }
+        #cameraPreview {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            display: none;
+            margin: 20px auto;
+        }
+
+      body {
+        background-image: url('drugs-background 1.jpg');
+        background-size: cover;
+    }
+    </style>
+</head>
+<body>
+    <header class="text-center my-4">
+        <h1 class="ak head">Drug Access System</h1>
+        <p>Search and order medications with ease</p>
+    </header>
+
+    <div class="container mt-5">
+        <!-- Search and Camera Scanner -->
+        <div class="input-group mb-4">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search for medications...">
+            <button class="btn btn-primary" onclick="filterMedications()">Search</button>
+        </div>
+        <div class="text-center mb-4">
+            <button class="btn btn-secondary" onclick="openCamera()">📷 Open Camera Scanner</button>
+        </div>
+        <video id="cameraPreview" autoplay></video>
+
+        <!-- Drug List -->
+        <div id="medicationList" class="row"></div>
+    </div>
+
+    <!-- Drug Details Modal -->
+    <div class="modal fade" id="drugDetailsModal" tabindex="-1" aria-labelledby="drugDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="drugDetailsModalLabel">Drug Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalImage" src="" class="img-fluid mb-3" alt="Drug Image">
+                    <h5 id="modalName"></h5>
+                    <p id="modalDescription"></p>
+                    <p>Price: ₦<span id="modalPrice"></span></p>
+                    <p>Total Quantity: <span id="modalTotalQuantity"></span></p>
+                    <p>Remaining Quantity: <span id="modalRemainingQuantity"></span></p>
+                    <hr>
+                    <h6>Place Order</h6>
+                    <div class="mb-3">
+                        <label for="orderQuantity" class="form-label">Order Quantity</label>
+                        <input type="number" id="orderQuantity" class="form-control" min="1" placeholder="Enter quantity">
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Select Payment Method</label>
+                        <select id="paymentMethod" class="form-select">
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const medications = [
+            { name: "Paracetamol", description: "Pain reliever and fever reducer.", price: 250, image: "https://via.placeholder.com/300x200?text=Paracetamol", quantity: 20, sold: 0 },
+            { name: "Ibuprofen", description: "Reduces inflammation and pain.", price: 500, image: "https://via.placeholder.com/300x200?text=Ibuprofen", quantity: 20, sold: 0 },
+            { name: "Amoxicillin", description: "Antibiotic for bacterial infections.", price: 1000, image: "https://via.placeholder.com/300x200?text=Amoxicillin", quantity: 20, sold: 0 },
+            { name: "Cetirizine", description: "Allergy medication.", price: 400, image: "https://via.placeholder.com/300x200?text=Cetirizine", quantity: 20, sold: 0 },
+            { name: "Aspirin", description: "Anti-inflammatory, pain reliever.", price: 600, image: "https://via.placeholder.com/300x200?text=Aspirin", quantity: 20, sold: 0 },
+            { name: "Ciprofloxacin", description: "Antibiotic for infections.", price: 1500, image: "https://via.placeholder.com/300x200?text=Ciprofloxacin", quantity: 20, sold: 0 },
+            { name: "Metformin", description: "Used for type 2 diabetes management.", price: 2000, image: "https://via.placeholder.com/300x200?text=Metformin", quantity: 20, sold: 0 },
+            { name: "Lisinopril", description: "Used for high blood pressure.", price: 1300, image: "https://via.placeholder.com/300x200?text=Lisinopril", quantity: 20, sold: 0 },
+            { name: "Atorvastatin", description: "Cholesterol-lowering drug.", price: 2500, image: "https://via.placeholder.com/300x200?text=Atorvastatin", quantity: 20, sold: 0 },
+            { name: "Omeprazole", description: "Treats acid reflux.", price: 800, image: "https://via.placeholder.com/300x200?text=Omeprazole", quantity: 20, sold: 0 },
+            { name: "Gabapentin", description: "Treats neuropathy and seizures.", price: 900, image: "https://via.placeholder.com/300x200?text=Gabapentin", quantity: 20, sold: 0 },
+            { name: "Prednisolone", description: "Steroid for inflammation.", price: 1600, image: "https://via.placeholder.com/300x200?text=Prednisolone", quantity: 20, sold: 0 },
+            { name: "Levothyroxine", description: "Thyroid hormone replacement.", price: 1200, image: "https://via.placeholder.com/300x200?text=Levothyroxine", quantity: 20, sold: 0 },
+            { name: "Furosemide", description: "Used for fluid retention.", price: 1100, image: "https://via.placeholder.com/300x200?text=Furosemide", quantity: 20, sold: 0 },
+            { name: "Diazepam", description: "Used for anxiety and seizures.", price: 750, image: "https://via.placeholder.com/300x200?text=Diazepam", quantity: 20, sold: 0 },
+            { name: "Alprazolam", description: "Anti-anxiety medication.", price: 700, image: "https://via.placeholder.com/300x200?text=Alprazolam", quantity: 20, sold: 0 },
+            { name: "Clonazepam", description: "Used for seizures and anxiety.", price: 950, image: "https://via.placeholder.com/300x200?text=Clonazepam", quantity: 20, sold: 0 },
+            { name: "Losartan", description: "Used for high blood pressure.", price: 1300, image: "https://via.placeholder.com/300x200?text=Losartan", quantity: 20, sold: 0 },
+            { name: "Azithromycin", description: "Antibiotic for infections.", price: 1200, image: "https://via.placeholder.com/300x200?text=Azithromycin", quantity: 20, sold: 0 },
+            { name: "Hydrochlorothiazide", description: "Used for high blood pressure.", price: 850, image: "https://via.placeholder.com/300x200?text=Hydrochlorothiazide", quantity: 20, sold: 0 }
+        ];
+
+        let selectedDrug = null;
+
+        function displayMedications(meds) {
+            const medicationList = document.getElementById("medicationList");
+            medicationList.innerHTML = '';
+            meds.forEach(med => {
+                const div = document.createElement('div');
+                div.classList.add('col-md-4', 'mb-4');
+                div.innerHTML = `
+                    <div class="card">
+                        <img src="${med.image}" class="card-img-top" alt="${med.name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${med.name}</h5>
+                            <p class="card-text">${med.description}</p>
+                            <p class="card-text">Price: ₦${med.price}</p>
+                            <button class="btn btn-primary" onclick="showDrugDetails('${med.name}')">View Details</button>
+                        </div>
+                    </div>`;
+                medicationList.appendChild(div);
+            });
+        }
+
+        function openCamera() {
+            const cameraPreview = document.getElementById('cameraPreview');
+            const constraints = {
+                video: {
+                    facingMode: { ideal: "environment" },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    cameraPreview.srcObject = stream;
+                    cameraPreview.style.display = 'block';
+                    cameraPreview.addEventListener('click', () => captureAndScan(stream));
+                })
+                .catch(error => {
+                    console.error("Camera access error:", error);
+                    alert('Camera access denied or not supported. Please try another device.');
+                });
+        }
+
+        function captureAndScan(stream) {
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            stream.getTracks().forEach(track => track.stop());
+            video.style.display = 'none';
+
+            Tesseract.recognize(canvas.toDataURL(), 'eng')
+                .then(({ data: { text } }) => {
+                    document.getElementById('searchInput').value = text.trim();
+                    filterMedications();
+                })
+                .catch(err => alert('Text recognition failed.'));
+        }
+
+        function filterMedications() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const filteredMedications = medications.filter(med =>
+                med.name.toLowerCase().includes(query) || med.description.toLowerCase().includes(query)
+            );
+            displayMedications(filteredMedications);
+        }
+
+        function showDrugDetails(name) {
+            selectedDrug = medications.find(med => med.name === name);
+            document.getElementById("modalImage").src = selectedDrug.image;
+            document.getElementById("modalName").textContent = selectedDrug.name;
+            document.getElementById("modalDescription").textContent = selectedDrug.description;
+            document.getElementById("modalPrice").textContent = selectedDrug.price;
+            document.getElementById("modalTotalQuantity").textContent = selectedDrug.quantity;
+            document.getElementById("modalRemainingQuantity").textContent = selectedDrug.quantity - selectedDrug.sold;
+            const modal = new bootstrap.Modal(document.getElementById("drugDetailsModal"));
+            modal.show();
+        }
+
+        function placeOrder() {
+            const orderQuantity = parseInt(document.getElementById("orderQuantity").value);
+            const paymentMethod = document.getElementById("paymentMethod").value;
+
+            if (isNaN(orderQuantity) || orderQuantity < 1) {
+                alert("Please enter a valid quantity.");
+                return;
+            }
+
+            const remainingQuantity = selectedDrug.quantity - selectedDrug.sold;
+            if (orderQuantity > remainingQuantity) {
+                alert("Insufficient stock.");
+                return;
+            }
+
+            selectedDrug.sold += orderQuantity;
+            alert(`Order placed successfully for ${orderQuantity} unit(s) of ${selectedDrug.name}.\nPayment Method: ${paymentMethod}`);
+            const modal = bootstrap.Modal.getInstance(document.getElementById("drugDetailsModal"));
+            modal.hide();
+            displayMedications(medications);
+        }
+
+        window.onload = () => displayMedications(medications);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

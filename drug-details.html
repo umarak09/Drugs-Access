@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drug Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Drug Details</h1>
+        <div id="drugDetails" class="row mt-4">
+            <!-- Drug details will be inserted here -->
+        </div>
+
+        <h2 class="mt-4">Order Now</h2>
+        <form id="orderForm">
+            <div class="mb-3">
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="quantity" placeholder="Enter quantity" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Place Order</button>
+        </form>
+    </div>
+
+    <script>
+        // Same list of medications used in search and order pages
+        const medications = [
+            { name: "Paracetamol", description: "Pain reliever and fever reducer.", price: 250, image: "https://via.placeholder.com/300x200?text=Paracetamol" },
+            { name: "Ibuprofen", description: "Reduces inflammation and pain.", price: 500, image: "https://via.placeholder.com/300x200?text=Ibuprofen" },
+            { name: "Amoxicillin", description: "Antibiotic for bacterial infections.", price: 1000, image: "https://via.placeholder.com/300x200?text=Amoxicillin" },
+            { name: "Cetirizine", description: "Allergy medication", price: 400, image: "https://via.placeholder.com/300x200?text=Cetirizine" },
+            { name: "Aspirin", description: "Anti-inflammatory, pain reliever", price: 600, image: "https://via.placeholder.com/300x200?text=Aspirin" },
+            { name: "Ciprofloxacin", description: "Antibiotic for infections", price: 1500, image: "https://via.placeholder.com/300x200?text=Ciprofloxacin" },
+            { name: "Metformin", description: "Used for type 2 diabetes management", price: 2000, image: "https://via.placeholder.com/300x200?text=Metformin" },
+            { name: "Lisinopril", description: "Used for high blood pressure", price: 1300, image: "https://via.placeholder.com/300x200?text=Lisinopril" },
+            { name: "Atorvastatin", description: "Cholesterol-lowering drug", price: 2500, image: "https://via.placeholder.com/300x200?text=Atorvastatin" },
+            { name: "Omeprazole", description: "Treats acid reflux", price: 800, image: "https://via.placeholder.com/300x200?text=Omeprazole" },
+            { name: "Gabapentin", description: "Neuropathy and seizures", price: 900, image: "https://via.placeholder.com/300x200?text=Gabapentin" },
+            { name: "Prednisolone", description: "Steroid for inflammation", price: 1600, image: "https://via.placeholder.com/300x200?text=Prednisolone" },
+            { name: "Levothyroxine", description: "Thyroid hormone replacement", price: 1200, image: "https://via.placeholder.com/300x200?text=Levothyroxine" },
+            { name: "Furosemide", description: "Used for fluid retention", price: 1100, image: "https://via.placeholder.com/300x200?text=Furosemide" },
+            { name: "Diazepam", description: "Used for anxiety and seizures", price: 750, image: "https://via.placeholder.com/300x200?text=Diazepam" },
+            { name: "Alprazolam", description: "Anti-anxiety medication", price: 700, image: "https://via.placeholder.com/300x200?text=Alprazolam" },
+            { name: "Clonazepam", description: "Used for seizures and anxiety", price: 950, image: "https://via.placeholder.com/300x200?text=Clonazepam" },
+            { name: "Losartan", description: "Used for high blood pressure", price: 1300, image: "https://via.placeholder.com/300x200?text=Losartan" },
+            { name: "Azithromycin", description: "Antibiotic for infections", price: 1200, image: "https://via.placeholder.com/300x200?text=Azithromycin" },
+            { name: "Hydrochlorothiazide", description: "Used for high blood pressure", price: 850, image: "https://via.placeholder.com/300x200?text=Hydrochlorothiazide" }
+        ];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const drugName = urlParams.get('name');
+        const drug = medications.find(med => med.name === drugName);
+
+        // Display drug details
+        if (drug) {
+            const drugDetails = document.getElementById("drugDetails");
+            drugDetails.innerHTML = `
+                <div class="col-md-6">
+                    <img src="${drug.image}" class="img-fluid" alt="${drug.name}">
+                </div>
+                <div class="col-md-6">
+                    <h3>${drug.name}</h3>
+                    <p>${drug.description}</p>
+                    <p>Price: ₦${drug.price}</p>
+                </div>
+            `;
+        }
+
+        // Handle order form submission
+        document.getElementById('orderForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const quantity = document.getElementById('quantity').value;
+            alert(`You have ordered ${quantity} of ${drug.name}.`);
+        });
+    </script>
+</body>
+</html>
